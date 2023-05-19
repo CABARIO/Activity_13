@@ -1,0 +1,56 @@
+---
+
+- hosts: All
+  become: true
+  pre_tasks:
+
+  -  name: Install update(Ubuntu)
+     tags: always
+     apt:
+       upgrade: dist
+       update_cache: yes
+     when: ansible_distribution == "Ubuntu"
+
+  -  name: Install update(CentOS)
+     tags: always
+     dnf:
+       update_only: yes
+       update_cache: yes
+     when: ansible_distribution == "CentOS"
+
+- hosts: Base
+  become: true
+  tasks:
+
+  -  name: Install Open Stack Packages
+     command: snap install --edge microstack --classic
+
+  -  name: install etcd
+     apt:
+       name:
+         -  etcd
+       state: latest
+       update_cache: yes
+     when: ansible_distribution == "Ubuntu"
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+  -  name: install ntp, msql
+     apt:
+       name:
+        - ntp
+        - mysql-server
+       state: latest
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  -  name: Install Message Queue and Memcached
+     apt:
+       name:
+        - rabbitmq-server
+        - memcached
+       state: latest
